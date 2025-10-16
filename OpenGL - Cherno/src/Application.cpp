@@ -1,16 +1,20 @@
+// General libraries
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 
+// Graphics libraries
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
+// Shader parsing structure
 struct ShaderProgramSource {
 	std::string VertexSource;
 	std::string FragmentSource;
 };
 
+// Function to parse shaders from a file
 static ShaderProgramSource ParseShader(const std::string& filepath) {
 	std::ifstream stream(filepath);
 
@@ -41,6 +45,7 @@ static ShaderProgramSource ParseShader(const std::string& filepath) {
 	return { ss[0].str(), ss[1].str() };
 }
 
+// Function to compile a shader of a given type from source code
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
     unsigned int id = glCreateShader(type);
@@ -72,6 +77,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
     return id;
 }
 
+// Function to create a shader program from vertex and fragment shader source code
 static int CreateShader(const std::string& vertexShader, const std::string& fragmentShader) 
 {
     unsigned int program = glCreateProgram();
@@ -92,7 +98,7 @@ static int CreateShader(const std::string& vertexShader, const std::string& frag
     glDeleteShader(fs);
 	return program;
 }
-
+ 
 int main(void)
 {
     GLFWwindow* window;
