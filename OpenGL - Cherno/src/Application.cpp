@@ -8,10 +8,14 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#define ASSERT(x) if(!(x)) __debugbreak();
-#define GLCall(x) GLClearError();\
-    x;\
-    ASSERT(GLLogCall(#x, __FILE__, __LINE__));
+#ifdef _DEBUG
+    #define ASSERT(x) if(!(x)) __debugbreak();
+    #define GLCall(x) GLClearError();\
+        x;\
+        ASSERT(GLLogCall(#x, __FILE__, __LINE__));
+#else
+    #define GLCall(x) x
+#endif
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -181,7 +185,7 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
 
         /* Swap front and back buffers */
         GLCall(glfwSwapBuffers(window));
