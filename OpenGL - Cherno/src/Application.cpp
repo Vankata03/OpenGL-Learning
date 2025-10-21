@@ -84,7 +84,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
         GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
 
 		// Allocate on the stack
-        char* message = (char*)alloca(length * sizeof(char));
+        char* message = (char*)_alloca(length * sizeof(char));
         
 		// Get the error message and log it
         GLCall(glGetShaderInfoLog(id, length, &length, message));
@@ -139,6 +139,8 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window); 
+
+	glfwSwapInterval(1); // Enable vsync
     if (glewInit() != GLEW_OK)
         std::cout << "Error initialising GLEW!" << std::endl;
     
@@ -179,13 +181,29 @@ int main(void)
 	GLCall(unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource));
 	GLCall(glUseProgram(shader));
 
+
+    float r = 0.0f;
+    float increment = 0.05f;
+
+	int location = glGetUniformLocation(shader, "u_Color");
+	ASSERT(location != -1);
+
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCall(glClear(GL_COLOR_BUFFER_BIT));
+       
+        if (r > 1.0f)
+            increment = -0.05f;
+        else if (r < 0.0f)
+            increment = 0.05f;
 
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+        r += increment;
+
+        GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
         /* Swap front and back buffers */
         GLCall(glfwSwapBuffers(window));
