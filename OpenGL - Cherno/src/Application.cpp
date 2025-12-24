@@ -150,11 +150,7 @@ int main(void)
             2, 3, 0
         };
 
-        // Create the vertex array object (VAO)
-        unsigned int vao;
-        GLCall(glGenVertexArrays(1, &vao));
-        GLCall(glBindVertexArray(vao));
-
+		// Create a vertex array object
 		VertexArray va;
 
 		// Create a vertex buffer and layout
@@ -167,14 +163,21 @@ int main(void)
         IndexBuffer ib(indices, 6);
 
         ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-        GLCall(unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource));
+        unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
         GLCall(glUseProgram(shader));
-
-        float r = 0.0f;
-        float increment = 0.05f;
 
         int location = glGetUniformLocation(shader, "u_Color");
         ASSERT(location != -1);
+
+        /* Test unbinding
+        va.Unbind();
+		GLCall(glUseProgram(0));
+        GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        */
+
+        float r = 0.0f;
+        float increment = 0.05f;
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
