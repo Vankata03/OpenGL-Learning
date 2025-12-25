@@ -1,9 +1,11 @@
 // Mine
 #include "Renderer.h"
 #include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 // CPP libraries
 #include <iostream>
@@ -46,25 +48,29 @@ int main(void)
 	// We scope so that destructor are called before glfwTerminate and we don't get the "invalid context" errors
     {
         // Define positions for a triangle (vertex positions)
-        float positions[8] = {
-             -0.5f, -0.5f,
-              0.5f, -0.5f,
-              0.5f,  0.5f,
-             -0.5f,  0.5f
+        float positions[] = {
+             -0.5f, -0.5f, 0.0f, 0.0f,
+              0.5f, -0.5f, 1.0f, 0.0f,
+			  0.5f,  0.5f, 1.0f, 1.0f,
+			 -0.5f,  0.5f, 0.0f, 1.0f
         };
 
         // Define an index array
-        unsigned int indices[6] = {
+        unsigned int indices[] = {
             0, 1, 2,
             2, 3, 0
         };
+
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        GLCall(glEnable(GL_BLEND));
 
 		// Create a vertex array object
 		VertexArray va;
 
 		// Create a vertex buffer and layout
-        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 		VertexBufferLayout layout;
+		layout.Push<float>(2);
 		layout.Push<float>(2);
 		va.AddBuffer(vb, layout);
 
@@ -82,6 +88,8 @@ int main(void)
 		vb.Unbind();
         ib.Unbind();
 
+		Renderer renderer;
+
         float r = 0.0f;
         float increment = 0.05f;
 
@@ -89,13 +97,16 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            renderer.Clear();
 
             shader.Bind();
 			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
 
-			va.Bind();
-			ib.Bind();
+			Texture texture("res/textures/wood.jpg");
+            texture.Bind();
+            shader.SetUniform1i("u_Texture", 0);
+
+            renderer.Draw(va, ib, shader);
 
             if (r > 1.0f)
                 increment = -0.05f;
@@ -103,8 +114,6 @@ int main(void)
                 increment = 0.05f;
 
             r += increment;
-
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
             /* Swap front and back buffers */
             GLCall(glfwSwapBuffers(window));
