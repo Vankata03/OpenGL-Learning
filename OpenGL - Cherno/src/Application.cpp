@@ -14,6 +14,8 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
  
 int main(void)
 {
@@ -29,7 +31,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Learning OpenGL", NULL, NULL);
+    window = glfwCreateWindow(960, 540, "Learning OpenGL", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -49,10 +51,10 @@ int main(void)
     {
         // Define positions for a triangle (vertex positions)
         float positions[] = {
-             -0.5f, -0.5f, 0.0f, 0.0f,
-              0.5f, -0.5f, 1.0f, 0.0f,
-			  0.5f,  0.5f, 1.0f, 1.0f,
-			 -0.5f,  0.5f, 0.0f, 1.0f
+              100.0f, 100.0f, 0.0f, 0.0f,
+              200.0f, 100.0f, 1.0f, 0.0f,
+			  200.0f, 200.0f, 1.0f, 1.0f,
+			  100.0f, 200.0f, 0.0f, 1.0f
         };
 
         // Define an index array
@@ -77,12 +79,20 @@ int main(void)
         // Create an index buffer
         IndexBuffer ib(indices, 6);
 
+		// TODO: Move to perspective - Create a projection matrix
+        glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
+
+        glm::mat4 mvp = proj * view * model;
+
+		// Create and bind a shader
         Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
-
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+		shader.SetUniformMat4f("u_MVP", mvp);
 
-		// Unbind everything
+		// TODO: Remove - Unbind everything
         va.Unbind();
 		shader.Unbind();
 		vb.Unbind();
