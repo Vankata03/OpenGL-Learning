@@ -13,10 +13,13 @@
 // Graphics libraries
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
- 
+
+#include "provided/imgui/imgui.h"
+#include "provided/imgui/imgui_impl_glfw.h"
+#include "provided/imgui/imgui_impl_opengl3.h"
+
 int main(void)
 {
     GLFWwindow* window;
@@ -82,15 +85,11 @@ int main(void)
 		// TODO: Move to perspective - Create a projection matrix
         glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
-
-        glm::mat4 mvp = proj * view * model;
 
 		// Create and bind a shader
         Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-		shader.SetUniformMat4f("u_MVP", mvp);
 
 		// TODO: Remove - Unbind everything
         va.Unbind();
@@ -100,8 +99,20 @@ int main(void)
 
 		Renderer renderer;
 
+		// Setup ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+		ImGui_ImplOpenGL3_Init("#version 330");
+		ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui::StyleColorsDark();
+
         float r = 0.0f;
         float increment = 0.05f;
+        glm::vec3 translation = glm::vec3(200, 200, 0);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -109,8 +120,14 @@ int main(void)
             /* Render here */
             renderer.Clear();
 
+			ImGui_ImplGlfw_NewFrame();
+
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+			glm::mat4 mvp = proj * view * model;
+
             shader.Bind();
 			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+			shader.SetUniformMat4f("u_MVP", mvp);
 
 			Texture texture("res/textures/wood.jpg");
             texture.Bind();
@@ -125,6 +142,19 @@ int main(void)
 
             r += increment;
 
+			// Start the ImGui frame
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
+			// ImGui UI code
+			ImGui::SliderFloat3("float", &translation.x, 0.0f, 500.0f);
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            
+			// Render the ImGui frame
+			ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
             /* Swap front and back buffers */
             GLCall(glfwSwapBuffers(window));
 
@@ -133,6 +163,9 @@ int main(void)
         }
     }
 
+	ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
