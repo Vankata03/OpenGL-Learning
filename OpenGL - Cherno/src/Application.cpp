@@ -67,13 +67,18 @@ int main(void)
               -50.0f, -50.0f, 0.0f, 0.0f,
                50.0f, -50.0f, 1.0f, 0.0f,
 			   50.0f,  50.0f, 1.0f, 1.0f,
-			  -50.0f,  50.0f, 0.0f, 1.0f
+			  -50.0f,  50.0f, 0.0f, 1.0f,
+
+			   50.0f,  50.0f,  0.0f, 0.0f,
+			   150.0f, 50.0f,  1.0f, 0.0f,
+			   150.0f, 150.0f, 1.0f, 1.0f,
+			   50.0f,  150.0f, 0.0f, 1.0f,
         };
 
         // Define an index array
         unsigned int indices[] = {
-            0, 1, 2,
-            2, 3, 0
+            0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4
         };
 
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -83,14 +88,14 @@ int main(void)
 		VertexArray va;
 
 		// Create a vertex buffer and layout
-        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
+        VertexBuffer vb(positions, 8 * 4 * sizeof(float));
 		VertexBufferLayout layout;
 		layout.Push<float>(2);
 		layout.Push<float>(2);
 		va.AddBuffer(vb, layout);
 
         // Create an index buffer
-        IndexBuffer ib(indices, 6);
+        IndexBuffer ib(indices, 12);
 
 		// TODO: Move to perspective - Create a projection matrix
         glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
@@ -99,7 +104,8 @@ int main(void)
 		// Create and bind a shader
         Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
-        shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+		glm::vec4 color(0.8f, 0.3f, 0.8f, 1.0f);
+        shader.SetUniform4f("u_Color", color);
 
 		Texture texture("res/textures/wood.jpg");
 		texture.Bind();
@@ -116,7 +122,6 @@ int main(void)
         float r = 0.0f;
         float increment = 0.05f;
 		glm::vec3 translationA(200, 200, 0);
-		glm::vec3 translationB(400, 200, 0);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -127,7 +132,8 @@ int main(void)
 			ImGui_ImplGlfw_NewFrame();
 
             shader.Bind();
-			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+            color.r = r;
+			shader.SetUniform4f("u_Color", color);
 
             { 
 			    glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
@@ -135,13 +141,6 @@ int main(void)
 			    shader.SetUniformMat4f("u_MVP", mvp);
                 renderer.Draw(va, ib, shader);
             }
-
-			{
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
-				glm::mat4 mvp = proj * view * model;
-				shader.SetUniformMat4f("u_MVP", mvp);
-				renderer.Draw(va, ib, shader);
-			}
 
             if (r > 1.0f)
                 increment = -0.05f;
@@ -157,7 +156,6 @@ int main(void)
 
 			// ImGui UI code
 			ImGui::SliderFloat3("float", &translationA.x, 0.0f, 500.0f);
-            ImGui::SliderFloat3("float2", &translationB.x, 0.0f, 500.0f);
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             
 			// Render the ImGui frame
