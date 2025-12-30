@@ -102,20 +102,14 @@ int main(void)
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
 		// Create and bind a shader
-        Shader shader("res/shaders/Basic.shader");
+        Shader shader("OpenGL - Cherno/res/shaders/Basic.shader");
 		shader.Bind();
 		glm::vec4 color(0.8f, 0.3f, 0.8f, 1.0f);
         shader.SetUniform4f("u_Color", color);
 
-		Texture texture("res/textures/wood.jpg");
+		Texture texture("OpenGL - Cherno/res/textures/wood.jpg");
 		texture.Bind();
 		shader.SetUniform1i("u_Texture", 0);
-
-		// TODO: Remove - Unbind everything
-        va.Unbind();
-		shader.Unbind();
-		vb.Unbind();
-        ib.Unbind();
 
 		Renderer renderer;
 
